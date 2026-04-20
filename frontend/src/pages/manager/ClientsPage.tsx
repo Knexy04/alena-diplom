@@ -105,6 +105,7 @@ const ClientsPage: React.FC = () => {
           rowKey="id"
           loading={loading}
           scroll={{ x: 500 }}
+          childrenColumnName="__children__"
           onRow={(record) => ({
             onClick: () => navigate(`/manager/clients/${record.id}`),
             style: { cursor: 'pointer' },
