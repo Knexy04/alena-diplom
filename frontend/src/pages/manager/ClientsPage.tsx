@@ -40,7 +40,7 @@ const ClientsPage: React.FC = () => {
               width: 40,
               height: 40,
               borderRadius: 10,
-              background: 'linear-gradient(135deg, #4f46e5, #818cf8)',
+              background: 'linear-gradient(135deg, #F37022, #FFA45C)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

@@ -171,7 +171,7 @@ const DocumentsList: React.FC<DocumentsListProps> = ({ applicationId }) => {
           showUploadList={false}
         >
           <p style={{ marginBottom: 8 }}>
-            <InboxOutlined style={{ fontSize: 40, color: '#818cf8' }} />
+            <InboxOutlined style={{ fontSize: 40, color: '#FFA45C' }} />
           </p>
           <p style={{ fontWeight: 500, marginBottom: 4 }}>Нажмите или перетащите файл</p>
           <p style={{ color: '#94a3b8', fontSize: 13 }}>PDF, JPG, PNG (до 10MB)</p>

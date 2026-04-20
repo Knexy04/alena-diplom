@@ -112,7 +112,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ applicationId, compact }) => {
                         href={`/api/uploads/${msg.filePath}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        style={{ color: isOurSide ? '#c7d2fe' : '#4f46e5', textDecoration: 'underline' }}
+                        style={{ color: isOurSide ? '#FFE4CC' : '#F37022', textDecoration: 'underline' }}
                       >
                         {msg.fileName || 'Файл'}
                       </a>

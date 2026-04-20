@@ -194,7 +194,7 @@ const ParentLayout: React.FC = () => {
             <div style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
               <Avatar
                 size={isTablet ? 32 : 36}
-                style={{ background: 'linear-gradient(135deg, #818cf8, #06b6d4)' }}
+                style={{ background: 'linear-gradient(135deg, #FFA45C, #F37022)' }}
                 icon={<UserOutlined />}
               />
               {!isTablet && (

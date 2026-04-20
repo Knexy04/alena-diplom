@@ -162,7 +162,7 @@ const ClientDetailPage: React.FC = () => {
       title: 'Номер',
       dataIndex: 'applicationNumber',
       key: 'number',
-      render: (v: string) => <span style={{ fontWeight: 600, color: '#4f46e5' }}>{v}</span>,
+      render: (v: string) => <span style={{ fontWeight: 600, color: '#F37022' }}>{v}</span>,
     },
     {
       title: 'Ребёнок',
@@ -203,7 +203,7 @@ const ClientDetailPage: React.FC = () => {
               width: 52,
               height: 52,
               borderRadius: 14,
-              background: 'linear-gradient(135deg, #4f46e5, #818cf8)',
+              background: 'linear-gradient(135deg, #F37022, #FFA45C)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

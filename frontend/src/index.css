@@ -3,10 +3,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --primary: #4f46e5;
-  --primary-light: #818cf8;
-  --primary-dark: #3730a3;
-  --accent: #06b6d4;
+  --primary: #F37022;
+  --primary-light: #FFA45C;
+  --primary-dark: #C2530D;
+  --primary-soft: #FFF4EA;
+  --accent: #14B8A6;
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
@@ -65,7 +66,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background: linear-gradient(135deg, #F37022 0%, #FB923C 50%, #FED7AA 100%);
   background-size: 200% 200%;
   animation: gradientShift 8s ease infinite;
   position: relative;
@@ -137,7 +138,7 @@ body {
 
 /* === Manager Sidebar === */
 .manager-sider {
-  background: linear-gradient(180deg, #1e1b4b 0%, #312e81 100%) !important;
+  background: linear-gradient(180deg, #7C2D12 0%, #9A3412 100%) !important;
   box-shadow: 4px 0 24px rgba(0,0,0,0.15);
   border-right: none;
   overflow: hidden;
@@ -278,7 +279,7 @@ body {
 
 /* === Parent Header === */
 .parent-header {
-  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+  background: linear-gradient(135deg, #7C2D12 0%, #9A3412 100%);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -391,7 +392,7 @@ body {
 }
 
 .stat-icon-blue {
-  background: #eff6ff;
+  background: var(--primary-soft);
   color: #3b82f6;
 }
 
@@ -611,7 +612,7 @@ body {
 }
 
 .notif-item-unread {
-  background: #eff6ff;
+  background: var(--primary-soft);
   border-left: 3px solid var(--primary);
 }
 

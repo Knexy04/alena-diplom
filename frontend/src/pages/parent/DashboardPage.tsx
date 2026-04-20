@@ -134,7 +134,7 @@ const ParentDashboardPage: React.FC = () => {
                   <div style={{ height: 4, background: color }} />
                   <div style={{ padding: '20px 24px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                      <Text strong style={{ fontSize: 15, color: '#4f46e5' }}>
+                      <Text strong style={{ fontSize: 15, color: '#F37022' }}>
                         {app.applicationNumber}
                       </Text>
                       <span

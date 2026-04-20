@@ -65,7 +65,7 @@ const ChatPage: React.FC = () => {
                     width: 44,
                     height: 44,
                     borderRadius: 12,
-                    background: 'linear-gradient(135deg, #4f46e5, #818cf8)',
+                    background: 'linear-gradient(135deg, #F37022, #FFA45C)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',

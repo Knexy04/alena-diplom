@@ -13,11 +13,11 @@ const App: React.FC = () => {
       locale={ruRU}
       theme={{
         token: {
-          colorPrimary: '#4f46e5',
+          colorPrimary: '#F37022',
           colorSuccess: '#10b981',
           colorWarning: '#f59e0b',
           colorError: '#ef4444',
-          colorInfo: '#06b6d4',
+          colorInfo: '#14B8A6',
           borderRadius: 8,
           fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
           fontSize: 14,
@@ -54,11 +54,11 @@ const App: React.FC = () => {
             borderRadiusSM: 6,
           },
           Tabs: {
-            itemSelectedColor: '#4f46e5',
-            inkBarColor: '#4f46e5',
+            itemSelectedColor: '#F37022',
+            inkBarColor: '#F37022',
           },
           Steps: {
-            colorPrimary: '#4f46e5',
+            colorPrimary: '#F37022',
           },
           Notification: {
             borderRadiusLG: 12,

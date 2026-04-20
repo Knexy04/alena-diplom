@@ -58,7 +58,7 @@ const ParentChatPage: React.FC = () => {
                     width: 44,
                     height: 44,
                     borderRadius: 12,
-                    background: 'linear-gradient(135deg, #818cf8, #06b6d4)',
+                    background: 'linear-gradient(135deg, #FFA45C, #F37022)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',

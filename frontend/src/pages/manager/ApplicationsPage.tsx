@@ -90,7 +90,7 @@ const ApplicationsPage: React.FC = () => {
       dataIndex: 'applicationNumber',
       key: 'number',
       width: 140,
-      render: (v: string) => <span style={{ fontWeight: 600, color: '#4f46e5' }}>{v}</span>,
+      render: (v: string) => <span style={{ fontWeight: 600, color: '#F37022' }}>{v}</span>,
     },
     {
       title: 'Ребёнок',

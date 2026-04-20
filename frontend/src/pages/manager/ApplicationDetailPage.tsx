@@ -127,7 +127,7 @@ const ApplicationDetailPage: React.FC = () => {
           >
             <Descriptions column={{ xs: 1, lg: 2 }} bordered size="small">
               <Descriptions.Item label="Номер">
-                <Text strong style={{ color: '#4f46e5' }}>{application.applicationNumber}</Text>
+                <Text strong style={{ color: '#F37022' }}>{application.applicationNumber}</Text>
               </Descriptions.Item>
               <Descriptions.Item label="Дата создания">
                 {formatDate(application.createdAt)}

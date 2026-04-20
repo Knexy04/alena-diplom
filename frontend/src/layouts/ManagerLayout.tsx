@@ -230,7 +230,7 @@ const ManagerLayout: React.FC = () => {
               <div className="header-user">
                 <Avatar
                   size={36}
-                  style={{ background: 'linear-gradient(135deg, #4f46e5, #818cf8)' }}
+                  style={{ background: 'linear-gradient(135deg, #F37022, #FFA45C)' }}
                   icon={<UserOutlined />}
                 />
                 {!isTablet && (
