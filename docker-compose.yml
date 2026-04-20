@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: juniorcamp-db
+    environment:
+      POSTGRES_DB: ${DB_NAME:-juniorcamp}
+      POSTGRES_USER: ${DB_USER:-juniorcamp}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-juniorcamp_secret}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-juniorcamp}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: juniorcamp-backend
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-juniorcamp}
+      - DB_USER=${DB_USER:-juniorcamp}
+      - DB_PASSWORD=${DB_PASSWORD:-juniorcamp_secret}
+      - JWT_SECRET=${JWT_SECRET:-super_secret_jwt_key_change_me}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-super_secret_refresh_key}
+      - UPLOAD_DIR=/app/uploads
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend/src:/app/src
+      - upload_data:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: npm run start:dev
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: juniorcamp-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend/src:/app/src
+    depends_on:
+      - backend
+    command: npm run dev -- --host 0.0.0.0
+
+volumes:
+  postgres_data:
+  upload_data:
