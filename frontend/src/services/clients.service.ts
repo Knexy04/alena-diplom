@@ -10,6 +10,8 @@ export const clientsService = {
 
   update: (id: string, data: IUpdateClientRequest) => api.patch(`/clients/${id}`, data),
 
+  remove: (id: string) => api.delete(`/clients/${id}`),
+
   addChild: (parentId: string, data: ICreateChildRequest) =>
     api.post(`/clients/${parentId}/children`, data),
 

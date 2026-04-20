@@ -76,17 +76,28 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ applicationId, compact }) => {
           </div>
         )}
         {messages.map((msg) => {
+          const isOurSide = msg.sender?.role
+            ? msg.sender.role === user?.role
+            : msg.senderId === user?.id;
           const isMine = msg.senderId === user?.id;
+          const senderLabel = !isMine && isOurSide && msg.sender
+            ? `${msg.sender.firstName} ${msg.sender.lastName}`.trim()
+            : null;
           return (
             <div
               key={msg.id}
               style={{
                 display: 'flex',
-                justifyContent: isMine ? 'flex-end' : 'flex-start',
+                justifyContent: isOurSide ? 'flex-end' : 'flex-start',
                 marginBottom: 8,
               }}
             >
-              <div className={`chat-bubble ${isMine ? 'chat-bubble-mine' : 'chat-bubble-other'}`}>
+              <div className={`chat-bubble ${isOurSide ? 'chat-bubble-mine' : 'chat-bubble-other'}`}>
+                {senderLabel && (
+                  <div style={{ fontSize: 11, opacity: 0.75, marginBottom: 4, fontWeight: 600 }}>
+                    {senderLabel}
+                  </div>
+                )}
                 {msg.text && <div style={{ lineHeight: 1.5 }}>{msg.text}</div>}
                 {msg.filePath && (
                   <div style={{ marginTop: 6 }}>
@@ -101,7 +112,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ applicationId, compact }) => {
                         href={`/api/uploads/${msg.filePath}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        style={{ color: isMine ? '#c7d2fe' : '#4f46e5', textDecoration: 'underline' }}
+                        style={{ color: isOurSide ? '#c7d2fe' : '#4f46e5', textDecoration: 'underline' }}
                       >
                         {msg.fileName || 'Файл'}
                       </a>

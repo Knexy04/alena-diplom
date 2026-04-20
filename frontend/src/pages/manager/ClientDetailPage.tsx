@@ -11,6 +11,7 @@ import {
   Input,
   DatePicker,
   List,
+  Popconfirm,
   Typography,
   Spin,
   notification,
@@ -27,6 +28,7 @@ import {
   FileTextOutlined,
   MessageOutlined,
   IdcardOutlined,
+  DeleteOutlined,
 } from '@ant-design/icons';
 import { useParams, useNavigate } from 'react-router-dom';
 import { clientsService } from '../../services/clients.service';
@@ -101,6 +103,17 @@ const ClientDetailPage: React.FC = () => {
       // handled
     } finally {
       setChatLoading(false);
+    }
+  };
+
+  const handleDeleteClient = async () => {
+    if (!id) return;
+    try {
+      await clientsService.remove(id);
+      notification.success({ message: 'Клиент удалён' });
+      navigate('/manager/clients');
+    } catch {
+      notification.error({ message: 'Не удалось удалить клиента' });
     }
   };
 
@@ -183,7 +196,7 @@ const ClientDetailPage: React.FC = () => {
         Назад к списку
       </Button>
 
-      <div className="page-header" style={{ marginBottom: 20 }}>
+      <div className="page-header" style={{ marginBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <div
             style={{
@@ -205,6 +218,16 @@ const ClientDetailPage: React.FC = () => {
             <Text type="secondary">{client.email}</Text>
           </div>
         </div>
+        <Popconfirm
+          title="Удалить клиента?"
+          description="Будут удалены все его заявки, дети, сообщения и документы. Действие необратимо."
+          okText="Удалить"
+          cancelText="Отмена"
+          okButtonProps={{ danger: true }}
+          onConfirm={handleDeleteClient}
+        >
+          <Button danger icon={<DeleteOutlined />}>Удалить клиента</Button>
+        </Popconfirm>
       </div>
 
       <Tabs

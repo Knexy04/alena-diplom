@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { User, UserRole } from '../users/entities/user.entity';
 import { Child } from './entities/child.entity';
 import { Application } from '../applications/entities/application.entity';
@@ -17,6 +17,7 @@ export class ClientsService {
     private childrenRepository: Repository<Child>,
     @InjectRepository(Application)
     private applicationsRepository: Repository<Application>,
+    private dataSource: DataSource,
   ) {}
 
   async findAllClients(search?: string) {
@@ -76,6 +77,26 @@ export class ClientsService {
     }
     Object.assign(client, dto);
     return this.usersRepository.save(client);
+  }
+
+  async deleteClient(id: string): Promise<void> {
+    const client = await this.usersRepository.findOne({
+      where: { id, role: UserRole.PARENT },
+    });
+    if (!client) {
+      throw new NotFoundException('Клиент не найден');
+    }
+
+    await this.dataSource.transaction(async (manager) => {
+      await manager.query('DELETE FROM notifications WHERE user_id = $1', [id]);
+      await manager.query(
+        'UPDATE applications SET assigned_manager_id = NULL WHERE assigned_manager_id = $1',
+        [id],
+      );
+      await manager.query('DELETE FROM messages WHERE sender_id = $1', [id]);
+      await manager.query('DELETE FROM documents WHERE uploaded_by_id = $1', [id]);
+      await manager.query('DELETE FROM users WHERE id = $1', [id]);
+    });
   }
 
   async addChild(parentId: string, dto: CreateChildDto) {

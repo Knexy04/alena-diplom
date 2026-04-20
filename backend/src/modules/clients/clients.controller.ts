@@ -3,10 +3,13 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Body,
   Param,
   Query,
   UseGuards,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ClientsService } from './clients.service';
@@ -51,6 +54,14 @@ export class ClientsController {
   @ApiOperation({ summary: 'Обновить данные клиента' })
   async update(@Param('id') id: string, @Body() dto: UpdateClientDto) {
     return this.clientsService.updateClient(id, dto);
+  }
+
+  @Delete(':id')
+  @Roles(UserRole.MANAGER)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Удалить клиента со всеми связанными данными' })
+  async remove(@Param('id') id: string): Promise<void> {
+    await this.clientsService.deleteClient(id);
   }
 
   @Post(':id/children')
