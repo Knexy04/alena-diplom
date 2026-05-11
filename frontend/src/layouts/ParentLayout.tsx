@@ -7,6 +7,8 @@ import {
   LogoutOutlined,
   UserOutlined,
   MessageOutlined,
+  TeamOutlined,
+  PaperClipOutlined,
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -22,10 +24,13 @@ interface INotification {
   body: string;
   isRead: boolean;
   createdAt: string;
+  filePath?: string | null;
+  fileName?: string | null;
 }
 
 const navItems = [
   { path: '/parent/dashboard', icon: <HomeOutlined />, label: 'Главная' },
+  { path: '/parent/children', icon: <TeamOutlined />, label: 'Дети' },
   { path: '/parent/documents', icon: <FolderOutlined />, label: 'Документы' },
   { path: '/parent/chat', icon: <MessageOutlined />, label: 'Чат' },
 ];
@@ -92,6 +97,17 @@ const ParentLayout: React.FC = () => {
             <div className={`notif-item ${!item.isRead ? 'notif-item-unread' : ''}`}>
               <Text style={{ fontWeight: item.isRead ? 400 : 600, fontSize: 13 }}>{item.title}</Text>
               <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{item.body}</div>
+              {item.filePath && (
+                <a
+                  href={`/api/uploads/${item.filePath}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: 12, color: '#F37022', display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4 }}
+                >
+                  <PaperClipOutlined />
+                  {item.fileName || 'Вложение'}
+                </a>
+              )}
               <Text type="secondary" style={{ fontSize: 11 }}>{formatDateTime(item.createdAt)}</Text>
             </div>
           )}
@@ -124,11 +140,9 @@ const ParentLayout: React.FC = () => {
             style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
             onClick={() => navigate('/parent/dashboard')}
           >
-            <div className="sidebar-logo-icon" style={{ width: 34, height: 34, fontSize: 14, borderRadius: 9 }}>
-              JC
-            </div>
+            <img src="/logo.jpg" alt="Джуниор Кэмп" className="header-logo-img" />
             <span style={{ color: '#fff', fontSize: 17, fontWeight: 700, letterSpacing: '-0.3px' }}>
-              Junior Camp
+              Джуниор Кэмп
             </span>
           </div>
 

@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Document, DocumentType } from './entities/document.entity';
+import { decodeMultipartFilename } from '../../common/utils/multipart-filename.util';
 import * as path from 'path';
 import * as fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
@@ -35,7 +36,8 @@ export class DocumentsService {
       fs.mkdirSync(dir, { recursive: true });
     }
 
-    const ext = path.extname(file.originalname);
+    const originalName = decodeMultipartFilename(file.originalname);
+    const ext = path.extname(originalName);
     const fileName = `${uuidv4()}${ext}`;
     const filePath = path.join(dir, fileName);
 
@@ -45,7 +47,7 @@ export class DocumentsService {
       applicationId,
       uploadedById,
       type,
-      originalName: file.originalname,
+      originalName,
       filePath: `${applicationId}/${fileName}`,
       mimeType: file.mimetype,
       fileSize: file.size,

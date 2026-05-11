@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Form, Select, Input, Button, Card, Typography, Modal, notification } from 'antd';
-import { SendOutlined, NotificationOutlined } from '@ant-design/icons';
+import { Form, Select, Input, Button, Card, Typography, Modal, Upload, notification } from 'antd';
+import { SendOutlined, NotificationOutlined, PaperClipOutlined, CloseOutlined } from '@ant-design/icons';
+import type { UploadFile } from 'antd';
 import { sessionsService } from '../../services/sessions.service';
 import { notificationsService } from '../../services/notifications.service';
 import { ISession } from '../../types/application';
@@ -11,16 +12,20 @@ const { TextArea } = Input;
 const BroadcastPage: React.FC = () => {
   const [sessions, setSessions] = useState<ISession[]>([]);
   const [loading, setLoading] = useState(false);
-  const [form] = Form.useForm();
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [form] = Form.useForm<{ sessionId: string; title: string; body: string }>();
 
   useEffect(() => {
     sessionsService.getAll().then((res) => setSessions(res.data.data));
   }, []);
 
-  const handleSend = async (values: { sessionId: string; title: string; body: string }) => {
+  const handleSend = (values: { sessionId: string; title: string; body: string }) => {
+    const file = fileList[0]?.originFileObj || null;
     Modal.confirm({
       title: 'Подтверждение рассылки',
-      content: 'Отправить уведомление всем родителям выбранной смены?',
+      content: file
+        ? `Отправить уведомление всем родителям выбранной смены с вложением «${file.name}»?`
+        : 'Отправить уведомление всем родителям выбранной смены?',
       okText: 'Отправить',
       cancelText: 'Отмена',
       onOk: async () => {
@@ -30,13 +35,19 @@ const BroadcastPage: React.FC = () => {
             values.sessionId,
             values.title,
             values.body,
+            file,
           );
           notification.success({
             message: `Рассылка отправлена ${res.data.data.recipientCount} родителям`,
           });
           form.resetFields();
-        } catch {
-          notification.error({ message: 'Ошибка при рассылке' });
+          setFileList([]);
+        } catch (e) {
+          const err = e as { response?: { data?: { message?: string | string[] } } };
+          const msg = err.response?.data?.message;
+          notification.error({
+            message: Array.isArray(msg) ? msg[0] : msg || 'Ошибка при рассылке',
+          });
         } finally {
           setLoading(false);
         }
@@ -81,6 +92,35 @@ const BroadcastPage: React.FC = () => {
             rules={[{ required: true, message: 'Введите текст' }]}
           >
             <TextArea rows={6} placeholder="Текст уведомления для родителей..." />
+          </Form.Item>
+          <Form.Item label="Вложение" extra="Один файл, максимум 10 МБ. PDF, DOC/DOCX, JPG, PNG.">
+            <Upload
+              beforeUpload={(file) => {
+                if (file.size > 10 * 1024 * 1024) {
+                  notification.error({
+                    message: 'Файл слишком большой',
+                    description: 'Максимальный размер — 10 МБ',
+                  });
+                  return Upload.LIST_IGNORE;
+                }
+                setFileList([
+                  {
+                    uid: file.uid,
+                    name: file.name,
+                    status: 'done',
+                    originFileObj: file,
+                  } as UploadFile,
+                ]);
+                return false;
+              }}
+              fileList={fileList}
+              onRemove={() => setFileList([])}
+              maxCount={1}
+              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+              showUploadList={{ removeIcon: <CloseOutlined /> }}
+            >
+              <Button icon={<PaperClipOutlined />}>Прикрепить файл</Button>
+            </Upload>
           </Form.Item>
           <Form.Item style={{ marginBottom: 0 }}>
             <Button

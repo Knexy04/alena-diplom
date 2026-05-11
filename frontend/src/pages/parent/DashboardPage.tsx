@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Row, Col, Tag, Typography, List, Button, Empty, Modal, Form, Select, Input, notification } from 'antd';
-import { PlusOutlined, CalendarOutlined, RightOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Typography, List, Button, Empty, Modal, Form, Select, Input, DatePicker, Checkbox, notification } from 'antd';
+import { PlusOutlined, CalendarOutlined, RightOutlined, UserAddOutlined, PaperClipOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import dayjs, { Dayjs } from 'dayjs';
 import { applicationsService } from '../../services/applications.service';
 import { notificationsService } from '../../services/notifications.service';
 import { sessionsService } from '../../services/sessions.service';
@@ -18,6 +19,16 @@ interface INotification {
   body: string;
   isRead: boolean;
   createdAt: string;
+  filePath?: string | null;
+  fileName?: string | null;
+}
+
+interface IChildFormValues {
+  firstName: string;
+  lastName: string;
+  patronymic?: string;
+  birthDate: Dayjs;
+  medicalNotes?: string;
 }
 
 const statusColorMap: Record<string, string> = {
@@ -46,6 +57,9 @@ const ParentDashboardPage: React.FC = () => {
   const [children, setChildren] = useState<IChild[]>([]);
   const [createLoading, setCreateLoading] = useState(false);
   const [createForm] = Form.useForm();
+  const [childModalOpen, setChildModalOpen] = useState(false);
+  const [childSubmitting, setChildSubmitting] = useState(false);
+  const [childForm] = Form.useForm<IChildFormValues>();
 
   const fetchData = async () => {
     try {
@@ -80,10 +94,19 @@ const ParentDashboardPage: React.FC = () => {
     setCreateModalOpen(true);
   };
 
-  const handleCreateApplication = async (values: { childId: string; sessionId: string; notes?: string }) => {
+  const handleCreateApplication = async (values: {
+    childId: string;
+    sessionId: string;
+    notes?: string;
+    agreedToPrivacyPolicy?: boolean;
+  }) => {
     setCreateLoading(true);
     try {
-      await applicationsService.create(values);
+      await applicationsService.create({
+        childId: values.childId,
+        sessionId: values.sessionId,
+        notes: values.notes,
+      });
       notification.success({ message: 'Заявка подана!' });
       setCreateModalOpen(false);
       createForm.resetFields();
@@ -92,6 +115,38 @@ const ParentDashboardPage: React.FC = () => {
       notification.error({ message: 'Ошибка при подаче заявки' });
     } finally {
       setCreateLoading(false);
+    }
+  };
+
+  const handleOpenChildModal = () => {
+    childForm.resetFields();
+    setChildModalOpen(true);
+  };
+
+  const handleAddChild = async (values: IChildFormValues) => {
+    setChildSubmitting(true);
+    try {
+      const res = await clientsService.addMyChild({
+        firstName: values.firstName.trim(),
+        lastName: values.lastName.trim(),
+        patronymic: values.patronymic?.trim() || undefined,
+        birthDate: values.birthDate.format('YYYY-MM-DD'),
+        medicalNotes: values.medicalNotes?.trim() || undefined,
+      });
+      const newChild: IChild = res.data.data;
+      setChildren((prev) => [...prev, newChild]);
+      createForm.setFieldValue('childId', newChild.id);
+      notification.success({ message: 'Ребёнок добавлен' });
+      setChildModalOpen(false);
+      childForm.resetFields();
+    } catch (e) {
+      const err = e as { response?: { data?: { message?: string | string[] } } };
+      const msg = err.response?.data?.message;
+      notification.error({
+        message: Array.isArray(msg) ? msg[0] : msg || 'Не удалось добавить ребёнка',
+      });
+    } finally {
+      setChildSubmitting(false);
     }
   };
 
@@ -182,7 +237,22 @@ const ParentDashboardPage: React.FC = () => {
                     {item.title}
                   </span>
                 }
-                description={<span style={{ color: '#64748b' }}>{item.body}</span>}
+                description={
+                  <div style={{ color: '#64748b' }}>
+                    <div>{item.body}</div>
+                    {item.filePath && (
+                      <a
+                        href={`/api/uploads/${item.filePath}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: '#F37022', display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4, fontSize: 13 }}
+                      >
+                        <PaperClipOutlined />
+                        {item.fileName || 'Вложение'}
+                      </a>
+                    )}
+                  </div>
+                }
               />
               <Text type="secondary" style={{ fontSize: 12, whiteSpace: 'nowrap' }}>
                 {formatDate(item.createdAt)}
@@ -206,10 +276,28 @@ const ParentDashboardPage: React.FC = () => {
         <Form form={createForm} layout="vertical" onFinish={handleCreateApplication} style={{ marginTop: 16 }}>
           <Form.Item name="childId" label="Ребёнок" rules={[{ required: true, message: 'Выберите ребёнка' }]}>
             <Select
-              placeholder="Выберите ребёнка"
+              placeholder={children.length ? 'Выберите ребёнка' : 'Сначала добавьте ребёнка'}
               options={children.map((c) => ({ label: getFullName(c), value: c.id }))}
+              notFoundContent={
+                <div style={{ padding: '12px 4px', textAlign: 'center' }}>
+                  <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
+                    Детей пока нет
+                  </Text>
+                  <Button size="small" type="primary" icon={<UserAddOutlined />} onClick={handleOpenChildModal}>
+                    Добавить ребёнка
+                  </Button>
+                </div>
+              }
             />
           </Form.Item>
+          <Button
+            type="link"
+            icon={<UserAddOutlined />}
+            onClick={handleOpenChildModal}
+            style={{ padding: 0, marginTop: -12, marginBottom: 12 }}
+          >
+            Добавить нового ребёнка
+          </Button>
           <Form.Item name="sessionId" label="Смена" rules={[{ required: true, message: 'Выберите смену' }]}>
             <Select
               placeholder="Выберите смену"
@@ -221,6 +309,81 @@ const ParentDashboardPage: React.FC = () => {
           </Form.Item>
           <Form.Item name="notes" label="Комментарий">
             <Input.TextArea rows={3} placeholder="Дополнительная информация" />
+          </Form.Item>
+          <Form.Item
+            name="agreedToPrivacyPolicy"
+            valuePropName="checked"
+            rules={[
+              {
+                validator: (_, value) =>
+                  value
+                    ? Promise.resolve()
+                    : Promise.reject(new Error('Необходимо согласие на обработку персональных данных')),
+              },
+            ]}
+            style={{ marginBottom: 0 }}
+          >
+            <Checkbox>
+              Я ознакомлен(а) и согласен(а) с{' '}
+              <a
+                href={`/${encodeURIComponent('Политика_обработки_персональных_данных.docx')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                style={{ color: '#F37022', textDecoration: 'underline' }}
+              >
+                политикой обработки персональных данных
+              </a>
+            </Checkbox>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title="Добавить ребёнка"
+        open={childModalOpen}
+        onCancel={() => { setChildModalOpen(false); childForm.resetFields(); }}
+        onOk={() => childForm.submit()}
+        okText="Добавить"
+        cancelText="Отмена"
+        confirmLoading={childSubmitting}
+        width={480}
+        zIndex={1100}
+      >
+        <Form form={childForm} layout="vertical" onFinish={handleAddChild} style={{ marginTop: 16 }}>
+          <Form.Item
+            name="lastName"
+            label="Фамилия"
+            rules={[{ required: true, message: 'Введите фамилию' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="firstName"
+            label="Имя"
+            rules={[{ required: true, message: 'Введите имя' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item name="patronymic" label="Отчество">
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="birthDate"
+            label="Дата рождения"
+            rules={[{ required: true, message: 'Укажите дату рождения' }]}
+          >
+            <DatePicker
+              style={{ width: '100%' }}
+              format="DD.MM.YYYY"
+              disabledDate={(d) => d && d.isAfter(dayjs())}
+            />
+          </Form.Item>
+          <Form.Item name="medicalNotes" label="Мед. особенности">
+            <Input.TextArea
+              rows={3}
+              placeholder="Аллергии, хронические заболевания и т.д."
+            />
           </Form.Item>
         </Form>
       </Modal>

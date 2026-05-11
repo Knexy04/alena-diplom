@@ -11,6 +11,7 @@ import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ChatService } from './chat.service';
+import { Message } from './entities/message.entity';
 import { jwtConfig } from '../../config/jwt.config';
 
 @WebSocketGateway({
@@ -90,6 +91,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
 
     const room = `application_${data.applicationId}`;
+    this.server.to(room).emit('newMessage', message);
+  }
+
+  broadcastMessage(applicationId: string, message: Message) {
+    const room = `application_${applicationId}`;
     this.server.to(room).emit('newMessage', message);
   }
 

@@ -49,7 +49,12 @@ export class NotificationsService {
     });
   }
 
-  async broadcast(sessionId: string, title: string, body: string) {
+  async broadcast(
+    sessionId: string,
+    title: string,
+    body: string,
+    file?: { filePath: string; fileName: string },
+  ) {
     const applications = await this.applicationsRepository.find({
       where: { sessionId },
       select: ['parentId'],
@@ -63,6 +68,8 @@ export class NotificationsService {
         type: NotificationType.BROADCAST,
         title,
         body,
+        filePath: file?.filePath ?? null,
+        fileName: file?.fileName ?? null,
       }),
     );
 

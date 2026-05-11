@@ -34,7 +34,7 @@ services:
       - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-super_secret_refresh_key}
       - UPLOAD_DIR=/app/uploads
     ports:
-      - "3000:3000"
+      - "3001:3000"
     volumes:
       - ./backend/src:/app/src
       - upload_data:/app/uploads
@@ -49,9 +49,11 @@ services:
       dockerfile: Dockerfile.dev
     container_name: juniorcamp-frontend
     ports:
-      - "5173:5173"
+      - "5174:5173"
     volumes:
       - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - ./frontend/index.html:/app/index.html
     depends_on:
       - backend
     command: npm run dev -- --host 0.0.0.0

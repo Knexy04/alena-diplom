@@ -9,8 +9,16 @@ export const notificationsService = {
 
   markAllAsRead: () => api.patch('/notifications/read-all'),
 
-  broadcast: (sessionId: string, title: string, body: string) =>
-    api.post('/notifications/broadcast', { sessionId, title, body }),
+  broadcast: (sessionId: string, title: string, body: string, file?: File | null) => {
+    const formData = new FormData();
+    formData.append('sessionId', sessionId);
+    formData.append('title', title);
+    formData.append('body', body);
+    if (file) formData.append('file', file);
+    return api.post('/notifications/broadcast', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
 
   getRecipientCount: (sessionId: string) =>
     api.get('/applications', { params: { sessionId, limit: 1 } }),

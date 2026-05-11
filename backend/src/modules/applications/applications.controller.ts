@@ -1,6 +1,9 @@
 import {
+  BadRequestException,
   Controller,
+  ForbiddenException,
   Get,
+  Logger,
   Post,
   Patch,
   Delete,
@@ -25,6 +28,8 @@ import { UserRole } from '../users/entities/user.entity';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('applications')
 export class ApplicationsController {
+  private readonly logger = new Logger(ApplicationsController.name);
+
   constructor(private applicationsService: ApplicationsService) {}
 
   @Get()
@@ -33,14 +38,28 @@ export class ApplicationsController {
     @Query() filter: FilterApplicationDto,
     @CurrentUser() user: { id: string; role: UserRole },
   ) {
-    const parentId = user.role === UserRole.PARENT ? user.id : undefined;
+    // Безопасный дефолт: если не явный менеджер — фильтруем по своему parent_id.
+    // Так родитель никогда не увидит чужие заявки, даже при странном значении role.
+    const parentId = user.role === UserRole.MANAGER ? undefined : user.id;
+    if (user.role !== UserRole.MANAGER && user.role !== UserRole.PARENT) {
+      this.logger.warn(
+        `Неожиданная роль пользователя ${user.id}: ${user.role}. Фильтрую как PARENT.`,
+      );
+    }
     return this.applicationsService.findAll(filter, parentId);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Детали заявки' })
-  async findOne(@Param('id') id: string) {
-    return this.applicationsService.findById(id);
+  async findOne(
+    @Param('id') id: string,
+    @CurrentUser() user: { id: string; role: UserRole },
+  ) {
+    const application = await this.applicationsService.findById(id);
+    if (user.role !== UserRole.MANAGER && application.parentId !== user.id) {
+      throw new ForbiddenException('Заявка вам не принадлежит');
+    }
+    return application;
   }
 
   @Post()
@@ -49,12 +68,23 @@ export class ApplicationsController {
     @Body() dto: CreateApplicationDto,
     @CurrentUser() user: { id: string; role: UserRole },
   ) {
-    const parentId = user.role === UserRole.PARENT ? user.id : user.id;
-    return this.applicationsService.create(dto, parentId);
+    let parentId: string;
+    let assignedManagerId: string | undefined;
+    if (user.role === UserRole.PARENT) {
+      parentId = user.id;
+    } else {
+      if (!dto.parentId) {
+        throw new BadRequestException('Не указан родитель');
+      }
+      parentId = dto.parentId;
+      assignedManagerId = user.id;
+    }
+    return this.applicationsService.create(dto, parentId, assignedManagerId);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Обновление заявки' })
+  @Roles(UserRole.MANAGER)
+  @ApiOperation({ summary: 'Обновление заявки (только менеджер)' })
   async update(@Param('id') id: string, @Body() dto: UpdateApplicationDto) {
     return this.applicationsService.update(id, dto);
   }

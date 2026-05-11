@@ -10,6 +10,7 @@ export const dataSourceOptions: DataSourceOptions = {
   entities: [__dirname + '/../modules/**/entities/*.entity{.ts,.js}'],
   migrations: [__dirname + '/../migrations/*{.ts,.js}'],
   synchronize: false,
+  migrationsRun: true,
 };
 
 const dataSource = new DataSource(dataSourceOptions);

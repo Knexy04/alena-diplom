@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Tag, Input, Select, DatePicker, Typography, Button, Modal, Form, notification } from 'antd';
-import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
+import { Table, Tag, Input, Select, DatePicker, Typography, Button, Modal, Form, Popconfirm, notification } from 'antd';
+import { PlusOutlined, SearchOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useApplications } from '../../hooks/useApplications';
 import { sessionsService } from '../../services/sessions.service';
@@ -64,10 +64,25 @@ const ApplicationsPage: React.FC = () => {
     createForm.setFieldValue('childId', undefined);
   };
 
+  const handleDelete = async (id: string) => {
+    try {
+      await applicationsService.remove(id);
+      notification.success({ message: 'Заявка удалена' });
+      refetch();
+    } catch (e) {
+      const err = e as { response?: { data?: { message?: string | string[] } } };
+      const msg = err.response?.data?.message;
+      notification.error({
+        message: Array.isArray(msg) ? msg[0] : msg || 'Не удалось удалить заявку',
+      });
+    }
+  };
+
   const handleCreateApplication = async (values: { parentId: string; childId: string; sessionId: string; notes?: string }) => {
     setCreateLoading(true);
     try {
       await applicationsService.create({
+        parentId: values.parentId,
         childId: values.childId,
         sessionId: values.sessionId,
         notes: values.notes,
@@ -77,8 +92,12 @@ const ApplicationsPage: React.FC = () => {
       createForm.resetFields();
       setSelectedClientChildren([]);
       refetch();
-    } catch {
-      notification.error({ message: 'Ошибка создания заявки' });
+    } catch (e) {
+      const err = e as { response?: { data?: { message?: string | string[] } } };
+      const msg = err.response?.data?.message;
+      notification.error({
+        message: Array.isArray(msg) ? msg[0] : msg || 'Ошибка создания заявки',
+      });
     } finally {
       setCreateLoading(false);
     }
@@ -125,6 +144,29 @@ const ApplicationsPage: React.FC = () => {
       key: 'createdAt',
       render: (_: unknown, record: IApplication) => (
         <span style={{ color: '#94a3b8' }}>{formatDate(record.createdAt)}</span>
+      ),
+    },
+    {
+      title: '',
+      key: 'actions',
+      width: 60,
+      render: (_: unknown, record: IApplication) => (
+        <Popconfirm
+          title="Удалить заявку?"
+          description="Вместе с заявкой будут удалены её документы и переписка."
+          okText="Удалить"
+          cancelText="Отмена"
+          okButtonProps={{ danger: true }}
+          onConfirm={() => handleDelete(record.id)}
+          onCancel={(e) => e?.stopPropagation()}
+        >
+          <Button
+            size="small"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={(e) => e.stopPropagation()}
+          />
+        </Popconfirm>
       ),
     },
   ];

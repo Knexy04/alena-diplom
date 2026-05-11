@@ -47,6 +47,12 @@ export class Notification {
   @JoinColumn({ name: 'related_application_id' })
   relatedApplication: Application;
 
+  @Column({ type: 'varchar', length: 500, nullable: true, name: 'file_path' })
+  filePath: string | null;
+
+  @Column({ type: 'varchar', length: 255, nullable: true, name: 'file_name' })
+  fileName: string | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }

@@ -11,6 +11,7 @@ import {
   Grid,
   Typography,
   Spin,
+  Popconfirm,
   notification,
   Steps,
 } from 'antd';
@@ -22,6 +23,7 @@ import {
   CalendarOutlined,
   FileTextOutlined,
   MessageOutlined,
+  DeleteOutlined,
 } from '@ant-design/icons';
 import { useParams, useNavigate } from 'react-router-dom';
 import { applicationsService } from '../../services/applications.service';
@@ -82,6 +84,21 @@ const ApplicationDetailPage: React.FC = () => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!id) return;
+    try {
+      await applicationsService.remove(id);
+      notification.success({ message: 'Заявка удалена' });
+      navigate('/manager/applications');
+    } catch (e) {
+      const err = e as { response?: { data?: { message?: string | string[] } } };
+      const msg = err.response?.data?.message;
+      notification.error({
+        message: Array.isArray(msg) ? msg[0] : msg || 'Не удалось удалить заявку',
+      });
+    }
+  };
+
   if (loading) return <Spin size="large" style={{ display: 'block', margin: '100px auto' }} />;
   if (!application) return <div>Заявка не найдена</div>;
 
@@ -97,7 +114,17 @@ const ApplicationDetailPage: React.FC = () => {
         Назад к списку
       </Button>
 
-      <div className="page-header" style={{ marginBottom: 20 }}>
+      <div
+        className="page-header"
+        style={{
+          marginBottom: 20,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          gap: 16,
+          flexWrap: 'wrap',
+        }}
+      >
         <div>
           <Title level={4} className="page-title">
             Заявка {application.applicationNumber}
@@ -106,6 +133,16 @@ const ApplicationDetailPage: React.FC = () => {
             {statusLabels[application.status]}
           </Tag>
         </div>
+        <Popconfirm
+          title="Удалить заявку?"
+          description="Вместе с заявкой будут удалены её документы и переписка. Действие необратимо."
+          okText="Удалить"
+          cancelText="Отмена"
+          okButtonProps={{ danger: true }}
+          onConfirm={handleDelete}
+        >
+          <Button danger icon={<DeleteOutlined />}>Удалить заявку</Button>
+        </Popconfirm>
       </div>
 
       <Card className="styled-card" style={{ marginBottom: 24 }}>

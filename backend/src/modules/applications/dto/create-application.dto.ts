@@ -10,6 +10,11 @@ export class CreateApplicationDto {
   @IsUUID('4', { message: 'Некорректный ID смены' })
   sessionId: string;
 
+  @ApiPropertyOptional({ description: 'ID родителя — обязателен только при создании менеджером' })
+  @IsOptional()
+  @IsUUID('4', { message: 'Некорректный ID родителя' })
+  parentId?: string;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()

@@ -66,6 +66,7 @@ export interface IApplicationsResponse {
 export interface ICreateApplicationRequest {
   childId: string;
   sessionId: string;
+  parentId?: string;
   notes?: string;
 }
 

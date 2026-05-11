@@ -111,8 +111,22 @@ body {
 }
 
 .login-logo {
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 8px;
+}
+
+.login-logo-img {
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  background: #fff;
+  object-fit: contain;
+  padding: 6px;
+  margin-bottom: 16px;
+  box-shadow: 0 8px 20px rgba(243, 112, 34, 0.18);
 }
 
 .login-logo-icon {
@@ -130,9 +144,10 @@ body {
 }
 
 .login-subtitle {
+  display: block;
   color: var(--text-secondary);
   font-size: 14px;
-  margin-bottom: 32px;
+  margin: 4px auto 32px;
   text-align: center;
 }
 
@@ -206,6 +221,28 @@ body {
   font-size: 18px;
   font-weight: 700;
   flex-shrink: 0;
+}
+
+.sidebar-logo-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fff;
+  object-fit: contain;
+  padding: 2px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.header-logo-img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #fff;
+  object-fit: contain;
+  padding: 2px;
+  flex-shrink: 0;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
 }
 
 .sidebar-logo-text {

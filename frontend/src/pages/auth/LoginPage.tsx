@@ -39,9 +39,9 @@ const LoginPage: React.FC = () => {
     <div className="login-page">
       <Card className="login-card">
         <div className="login-logo">
-          <div className="login-logo-icon">JC</div>
-          <Title level={3} style={{ margin: 0, letterSpacing: '-0.5px' }}>
-            Junior Camp
+          <img src="/logo.jpg" alt="Джуниор Кэмп" className="login-logo-img" />
+          <Title level={3} style={{ margin: 0, letterSpacing: '-0.5px', textAlign: 'center' }}>
+            Джуниор Кэмп
           </Title>
         </div>
         <Text className="login-subtitle">

@@ -11,8 +11,10 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ChatService } from './chat.service';
+import { ChatGateway } from './chat.gateway';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { decodeMultipartFilename } from '../../common/utils/multipart-filename.util';
 import * as path from 'path';
 import * as fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
@@ -24,7 +26,10 @@ import { v4 as uuidv4 } from 'uuid';
 export class ChatController {
   private uploadDir = process.env.UPLOAD_DIR || './uploads';
 
-  constructor(private chatService: ChatService) {}
+  constructor(
+    private chatService: ChatService,
+    private chatGateway: ChatGateway,
+  ) {}
 
   @Get(':applicationId/messages')
   @ApiOperation({ summary: 'История сообщений' })
@@ -53,7 +58,8 @@ export class ChatController {
       fs.mkdirSync(dir, { recursive: true });
     }
 
-    const ext = path.extname(file.originalname);
+    const originalName = decodeMultipartFilename(file.originalname);
+    const ext = path.extname(originalName);
     const fileName = `${uuidv4()}${ext}`;
     const filePath = path.join(dir, fileName);
 
@@ -65,8 +71,10 @@ export class ChatController {
       applicationId,
       senderId: user.id,
       filePath: relativePath,
-      fileName: file.originalname,
+      fileName: originalName,
     });
+
+    this.chatGateway.broadcastMessage(applicationId, message);
 
     return message;
   }

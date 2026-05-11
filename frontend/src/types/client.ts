@@ -25,6 +25,15 @@ export interface ICreateChildRequest {
   medicalNotes?: string;
 }
 
+export interface ICreateClientRequest {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  patronymic?: string;
+  phone?: string;
+}
+
 export interface IUpdateClientRequest {
   firstName?: string;
   lastName?: string;

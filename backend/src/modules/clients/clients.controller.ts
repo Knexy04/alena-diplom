@@ -14,6 +14,7 @@ import {
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ClientsService } from './clients.service';
 import { CreateChildDto } from './dto/create-child.dto';
+import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
 import { UpdateChildDto } from './dto/update-child.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -35,11 +36,25 @@ export class ClientsController {
     return this.clientsService.getChildrenByParent(user.id);
   }
 
+  @Post('me/children')
+  @Roles(UserRole.PARENT)
+  @ApiOperation({ summary: 'Добавить своего ребёнка (для родителя)' })
+  async addMyChild(@CurrentUser() user: { id: string }, @Body() dto: CreateChildDto) {
+    return this.clientsService.addChild(user.id, dto);
+  }
+
   @Get()
   @Roles(UserRole.MANAGER)
   @ApiOperation({ summary: 'Список клиентов (родителей)' })
   async findAll(@Query('search') search?: string) {
     return this.clientsService.findAllClients(search);
+  }
+
+  @Post()
+  @Roles(UserRole.MANAGER)
+  @ApiOperation({ summary: 'Создать клиента (родителя)' })
+  async create(@Body() dto: CreateClientDto) {
+    return this.clientsService.createClient(dto);
   }
 
   @Get(':id')
@@ -65,7 +80,8 @@ export class ClientsController {
   }
 
   @Post(':id/children')
-  @ApiOperation({ summary: 'Добавить ребёнка' })
+  @Roles(UserRole.MANAGER)
+  @ApiOperation({ summary: 'Добавить ребёнка указанному родителю (для менеджера)' })
   async addChild(@Param('id') id: string, @Body() dto: CreateChildDto) {
     return this.clientsService.addChild(id, dto);
   }

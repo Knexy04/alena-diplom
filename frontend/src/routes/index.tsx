@@ -13,11 +13,13 @@ import ClientsPage from '../pages/manager/ClientsPage';
 import ClientDetailPage from '../pages/manager/ClientDetailPage';
 import ManagerChatPage from '../pages/manager/ChatPage';
 import BroadcastPage from '../pages/manager/BroadcastPage';
+import SessionsPage from '../pages/manager/SessionsPage';
 
 import ParentDashboard from '../pages/parent/DashboardPage';
 import ApplicationStatusPage from '../pages/parent/ApplicationStatusPage';
 import DocumentsPage from '../pages/parent/DocumentsPage';
 import ParentChatPage from '../pages/parent/ChatPage';
+import ChildrenPage from '../pages/parent/ChildrenPage';
 
 const AppRouter: React.FC = () => {
   return (
@@ -32,6 +34,7 @@ const AppRouter: React.FC = () => {
             <Route path="/manager/applications/:id" element={<ApplicationDetailPage />} />
             <Route path="/manager/clients" element={<ClientsPage />} />
             <Route path="/manager/clients/:id" element={<ClientDetailPage />} />
+            <Route path="/manager/sessions" element={<SessionsPage />} />
             <Route path="/manager/chat" element={<ManagerChatPage />} />
             <Route path="/manager/broadcast" element={<BroadcastPage />} />
           </Route>
@@ -41,6 +44,7 @@ const AppRouter: React.FC = () => {
           <Route element={<ParentLayout />}>
             <Route path="/parent/dashboard" element={<ParentDashboard />} />
             <Route path="/parent/applications/:id" element={<ApplicationStatusPage />} />
+            <Route path="/parent/children" element={<ChildrenPage />} />
             <Route path="/parent/documents" element={<DocumentsPage />} />
             <Route path="/parent/chat" element={<ParentChatPage />} />
           </Route>

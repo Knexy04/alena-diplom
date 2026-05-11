@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, SelectQueryBuilder } from 'typeorm';
+import { DataSource, Repository, SelectQueryBuilder } from 'typeorm';
+import * as fs from 'fs';
+import * as path from 'path';
 import { Application, ApplicationStatus } from './entities/application.entity';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
@@ -9,10 +11,12 @@ import { FilterApplicationDto } from './dto/filter-application.dto';
 @Injectable()
 export class ApplicationsService {
   private readonly logger = new Logger(ApplicationsService.name);
+  private readonly uploadDir = process.env.UPLOAD_DIR || './uploads';
 
   constructor(
     @InjectRepository(Application)
     private applicationsRepository: Repository<Application>,
+    private dataSource: DataSource,
   ) {}
 
   async findAll(filter: FilterApplicationDto, parentId?: string) {
@@ -85,7 +89,11 @@ export class ApplicationsService {
     return app;
   }
 
-  async create(dto: CreateApplicationDto, parentId: string): Promise<Application> {
+  async create(
+    dto: CreateApplicationDto,
+    parentId: string,
+    assignedManagerId?: string,
+  ): Promise<Application> {
     const applicationNumber = await this.generateApplicationNumber();
 
     const application = this.applicationsRepository.create({
@@ -95,6 +103,7 @@ export class ApplicationsService {
       sessionId: dto.sessionId,
       status: ApplicationStatus.REVIEW,
       notes: dto.notes,
+      assignedManagerId,
     });
 
     const saved = await this.applicationsRepository.save(application);
@@ -112,8 +121,34 @@ export class ApplicationsService {
 
   async remove(id: string): Promise<void> {
     const application = await this.findById(id);
-    await this.applicationsRepository.remove(application);
+
+    await this.dataSource.transaction(async (manager) => {
+      await manager.query(
+        'UPDATE notifications SET related_application_id = NULL WHERE related_application_id = $1',
+        [id],
+      );
+      await manager.query('DELETE FROM applications WHERE id = $1', [id]);
+    });
+
+    this.cleanupApplicationFiles(id);
+
     this.logger.log(`Удалена заявка ${application.applicationNumber}`);
+  }
+
+  private cleanupApplicationFiles(applicationId: string) {
+    const dirs = [
+      path.join(this.uploadDir, applicationId),
+      path.join(this.uploadDir, 'chat', applicationId),
+    ];
+    for (const dir of dirs) {
+      try {
+        if (fs.existsSync(dir)) {
+          fs.rmSync(dir, { recursive: true, force: true });
+        }
+      } catch (err) {
+        this.logger.warn(`Не удалось удалить ${dir}: ${(err as Error).message}`);
+      }
+    }
   }
 
   private async generateApplicationNumber(): Promise<string> {

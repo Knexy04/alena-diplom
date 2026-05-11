@@ -1,10 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 import { User, UserRole } from '../users/entities/user.entity';
 import { Child } from './entities/child.entity';
 import { Application } from '../applications/entities/application.entity';
 import { CreateChildDto } from './dto/create-child.dto';
+import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
 import { UpdateChildDto } from './dto/update-child.dto';
 
@@ -19,6 +21,24 @@ export class ClientsService {
     private applicationsRepository: Repository<Application>,
     private dataSource: DataSource,
   ) {}
+
+  async createClient(dto: CreateClientDto): Promise<User> {
+    const existing = await this.usersRepository.findOne({ where: { email: dto.email } });
+    if (existing) {
+      throw new ConflictException('Пользователь с таким email уже существует');
+    }
+    const passwordHash = await bcrypt.hash(dto.password, 10);
+    const user = this.usersRepository.create({
+      email: dto.email,
+      passwordHash,
+      role: UserRole.PARENT,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      patronymic: dto.patronymic,
+      phone: dto.phone,
+    });
+    return this.usersRepository.save(user);
+  }
 
   async findAllClients(search?: string) {
     const qb = this.usersRepository

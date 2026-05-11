@@ -12,6 +12,8 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   MenuOutlined,
+  CalendarOutlined,
+  PaperClipOutlined,
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -27,12 +29,15 @@ interface INotification {
   body: string;
   isRead: boolean;
   createdAt: string;
+  filePath?: string | null;
+  fileName?: string | null;
 }
 
 const sidebarItems = [
-  { path: '/manager/dashboard', icon: <DashboardOutlined />, label: 'Дашборд' },
+  { path: '/manager/dashboard', icon: <DashboardOutlined />, label: 'Панель управления' },
   { path: '/manager/applications', icon: <FileTextOutlined />, label: 'Заявки' },
   { path: '/manager/clients', icon: <TeamOutlined />, label: 'Клиенты' },
+  { path: '/manager/sessions', icon: <CalendarOutlined />, label: 'Смены' },
   { path: '/manager/chat', icon: <MessageOutlined />, label: 'Чат' },
   { path: '/manager/broadcast', icon: <NotificationOutlined />, label: 'Рассылка' },
 ];
@@ -106,6 +111,17 @@ const ManagerLayout: React.FC = () => {
             <div className={`notif-item ${!item.isRead ? 'notif-item-unread' : ''}`}>
               <Text style={{ fontWeight: item.isRead ? 400 : 600, fontSize: 13 }}>{item.title}</Text>
               <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{item.body}</div>
+              {item.filePath && (
+                <a
+                  href={`/api/uploads/${item.filePath}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: 12, color: '#F37022', display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4 }}
+                >
+                  <PaperClipOutlined />
+                  {item.fileName || 'Вложение'}
+                </a>
+              )}
               <Text type="secondary" style={{ fontSize: 11 }}>{formatDateTime(item.createdAt)}</Text>
             </div>
           )}
@@ -148,8 +164,8 @@ const ManagerLayout: React.FC = () => {
         className={`manager-sider ${isMobile && mobileMenuOpen ? 'mobile-open' : ''}`}
       >
         <div className="sidebar-logo">
-          <div className="sidebar-logo-icon">JC</div>
-          {(!collapsed || isMobile) && <span className="sidebar-logo-text">Junior Camp</span>}
+          <img src="/logo.jpg" alt="Джуниор Кэмп" className="sidebar-logo-img" />
+          {(!collapsed || isMobile) && <span className="sidebar-logo-text">Джуниор Кэмп</span>}
         </div>
         <nav style={{ padding: 8 }}>
           {sidebarItems.map((item) => {
