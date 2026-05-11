@@ -93,7 +93,7 @@ const DashboardPage: React.FC = () => {
   return (
     <div>
       <div className="page-header">
-        <Title level={4} className="page-title">Дашборд</Title>
+        <Title level={4} className="page-title">Панель управления</Title>
       </div>
 
       <Row gutter={[16, 0]} style={{ marginBottom: 28 }}>
