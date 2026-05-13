@@ -7,6 +7,16 @@ import { Application, ApplicationStatus } from './entities/application.entity';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
 import { FilterApplicationDto } from './dto/filter-application.dto';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/entities/notification.entity';
+
+const STATUS_LABELS: Record<ApplicationStatus, string> = {
+  [ApplicationStatus.REVIEW]: 'На рассмотрении',
+  [ApplicationStatus.PROCESSING]: 'В обработке',
+  [ApplicationStatus.AWAITING_PAYMENT]: 'Ожидает предоплаты',
+  [ApplicationStatus.PAID]: 'Оплачено',
+  [ApplicationStatus.COMPLETED]: 'Завершено',
+};
 
 @Injectable()
 export class ApplicationsService {
@@ -17,6 +27,7 @@ export class ApplicationsService {
     @InjectRepository(Application)
     private applicationsRepository: Repository<Application>,
     private dataSource: DataSource,
+    private notificationsService: NotificationsService,
   ) {}
 
   async findAll(filter: FilterApplicationDto, parentId?: string) {
@@ -113,9 +124,25 @@ export class ApplicationsService {
 
   async update(id: string, dto: UpdateApplicationDto): Promise<Application> {
     const application = await this.findById(id);
+    const previousStatus = application.status;
     Object.assign(application, dto);
     await this.applicationsRepository.save(application);
     this.logger.log(`Обновлена заявка ${application.applicationNumber}, статус: ${application.status}`);
+
+    if (dto.status && dto.status !== previousStatus) {
+      try {
+        await this.notificationsService.create({
+          userId: application.parentId,
+          type: NotificationType.STATUS_CHANGE,
+          title: `Статус заявки ${application.applicationNumber}`,
+          body: `Новый статус: ${STATUS_LABELS[application.status] || application.status}`,
+          relatedApplicationId: application.id,
+        });
+      } catch (err) {
+        this.logger.warn(`Не удалось создать уведомление о статусе: ${(err as Error).message}`);
+      }
+    }
+
     return this.findById(id);
   }
 
