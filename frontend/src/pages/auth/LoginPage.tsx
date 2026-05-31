@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, Card, Typography, Tabs } from 'antd';
 import { MailOutlined, LockOutlined, UserOutlined, PhoneOutlined } from '@ant-design/icons';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
 const { Title, Text } = Typography;
@@ -90,6 +91,9 @@ const LoginPage: React.FC = () => {
                       Войти в систему
                     </Button>
                   </Form.Item>
+                  <div style={{ textAlign: 'center', marginTop: 12 }}>
+                    <Link to="/forgot-password">Забыли пароль?</Link>
+                  </div>
                 </Form>
               ),
             },

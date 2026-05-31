@@ -2,15 +2,25 @@ import {
   Injectable,
   UnauthorizedException,
   ConflictException,
+  BadRequestException,
   Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import { LessThan, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { randomInt } from 'crypto';
 import { UsersService } from '../users/users.service';
+import { MailService } from '../mail/mail.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { UserRole } from '../users/entities/user.entity';
+import { PasswordResetCode } from './entities/password-reset-code.entity';
 import { jwtConfig } from '../../config/jwt.config';
+
+const RESET_CODE_TTL_MINUTES = 15;
 
 @Injectable()
 export class AuthService {
@@ -19,6 +29,9 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private mailService: MailService,
+    @InjectRepository(PasswordResetCode)
+    private resetCodesRepository: Repository<PasswordResetCode>,
   ) {}
 
   async login(loginDto: LoginDto) {
@@ -111,6 +124,75 @@ export class AuthService {
     } catch {
       throw new UnauthorizedException('Невалидный refresh token');
     }
+  }
+
+  async forgotPassword(dto: ForgotPasswordDto) {
+    const genericResponse = {
+      message:
+        'Если аккаунт с таким email существует, на него отправлен код для сброса пароля',
+    };
+
+    const user = await this.usersService.findByEmail(dto.email);
+    // Не раскрываем, существует ли пользователь с таким email.
+    if (!user || !user.isActive) {
+      return genericResponse;
+    }
+
+    // Удаляем предыдущие коды этого пользователя — действует только последний.
+    await this.resetCodesRepository.delete({ userId: user.id });
+
+    const code = randomInt(0, 1_000_000).toString().padStart(6, '0');
+    const codeHash = await bcrypt.hash(code, 10);
+    const expiresAt = new Date(Date.now() + RESET_CODE_TTL_MINUTES * 60 * 1000);
+
+    await this.resetCodesRepository.save(
+      this.resetCodesRepository.create({
+        userId: user.id,
+        codeHash,
+        expiresAt,
+        used: false,
+      }),
+    );
+
+    await this.mailService.sendPasswordResetCode(user.email, code);
+
+    this.logger.log(`Запрошен сброс пароля для ${user.email}`);
+
+    return genericResponse;
+  }
+
+  async resetPassword(dto: ResetPasswordDto) {
+    const user = await this.usersService.findByEmail(dto.email);
+    if (!user) {
+      throw new BadRequestException('Неверный код или срок его действия истёк');
+    }
+
+    // Чистим протухшие коды, чтобы таблица не разрасталась.
+    await this.resetCodesRepository.delete({ expiresAt: LessThan(new Date()) });
+
+    const resetCode = await this.resetCodesRepository.findOne({
+      where: { userId: user.id, used: false },
+      order: { createdAt: 'DESC' },
+    });
+
+    if (!resetCode || resetCode.expiresAt < new Date()) {
+      throw new BadRequestException('Неверный код или срок его действия истёк');
+    }
+
+    const isCodeValid = await bcrypt.compare(dto.code, resetCode.codeHash);
+    if (!isCodeValid) {
+      throw new BadRequestException('Неверный код или срок его действия истёк');
+    }
+
+    const passwordHash = await bcrypt.hash(dto.newPassword, 10);
+    await this.usersService.updatePassword(user.id, passwordHash);
+
+    // Инвалидируем все коды пользователя после успешного сброса.
+    await this.resetCodesRepository.delete({ userId: user.id });
+
+    this.logger.log(`Пароль успешно сброшен для ${user.email}`);
+
+    return { message: 'Пароль успешно изменён' };
   }
 
   private generateTokens(userId: string, email: string, role: string) {

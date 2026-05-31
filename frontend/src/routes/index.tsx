@@ -6,6 +6,7 @@ import ManagerLayout from '../layouts/ManagerLayout';
 import ParentLayout from '../layouts/ParentLayout';
 
 import LoginPage from '../pages/auth/LoginPage';
+import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage';
 import ManagerDashboard from '../pages/manager/DashboardPage';
 import ApplicationsPage from '../pages/manager/ApplicationsPage';
 import ApplicationDetailPage from '../pages/manager/ApplicationDetailPage';
@@ -26,6 +27,7 @@ const AppRouter: React.FC = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
         <Route element={<ManagerRoutes />}>
           <Route element={<ManagerLayout />}>

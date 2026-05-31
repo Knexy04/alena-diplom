@@ -33,6 +33,12 @@ services:
       - JWT_SECRET=${JWT_SECRET:-super_secret_jwt_key_change_me}
       - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-super_secret_refresh_key}
       - UPLOAD_DIR=/app/uploads
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-465}
+      - SMTP_SECURE=${SMTP_SECURE:-true}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_FROM=${SMTP_FROM:-Джуниор Кэмп <no-reply@juniorcamp.ru>}
     ports:
       - "3001:3000"
     volumes:
