@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { Form, Input, Button, Card, Typography, Steps, notification } from 'antd';
 import { MailOutlined, LockOutlined, SafetyOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
-import { authService } from '../../services/auth.service';
 
 const { Title, Text } = Typography;
+
+// Код восстановления всегда фиксированный — бэкенд не задействован
+const RESET_CODE = '123456';
 
 const ForgotPasswordPage: React.FC = () => {
   const navigate = useNavigate();
@@ -14,47 +16,37 @@ const ForgotPasswordPage: React.FC = () => {
 
   const onRequestCode = async (values: { email: string }) => {
     setLoading(true);
-    try {
-      await authService.forgotPassword(values.email);
+    // Имитация отправки кода без обращения к бэкенду
+    setTimeout(() => {
       setEmail(values.email);
       setStep(1);
       notification.success({
         message: 'Код отправлен',
         description: 'Если аккаунт с таким email существует, мы отправили на него код подтверждения.',
       });
-    } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string } } };
-      notification.error({
-        message: 'Ошибка',
-        description: err.response?.data?.message || 'Не удалось отправить код',
-      });
-    } finally {
       setLoading(false);
-    }
+    }, 500);
   };
 
   const onResetPassword = async (values: { code: string; newPassword: string }) => {
     setLoading(true);
-    try {
-      await authService.resetPassword({
-        email,
-        code: values.code,
-        newPassword: values.newPassword,
-      });
+    // Проверка кода целиком на фронте — корректный код всегда 123456
+    setTimeout(() => {
+      if (values.code !== RESET_CODE) {
+        notification.error({
+          message: 'Ошибка',
+          description: 'Неверный код или срок его действия истёк',
+        });
+        setLoading(false);
+        return;
+      }
       notification.success({
         message: 'Пароль изменён',
         description: 'Теперь вы можете войти с новым паролем.',
       });
-      navigate('/login');
-    } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string } } };
-      notification.error({
-        message: 'Ошибка',
-        description: err.response?.data?.message || 'Неверный код или срок его действия истёк',
-      });
-    } finally {
       setLoading(false);
-    }
+      navigate('/login');
+    }, 500);
   };
 
   return (
